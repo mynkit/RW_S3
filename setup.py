@@ -11,7 +11,9 @@ setup(
     name="RW_S3",
     version="0.0.1",
     python_requires=">=3.5",
-    packages=find_packages(),
+    packages=[
+        "RW_S3",
+    ],
     install_requires=_requires_from_file('requirements.txt'),
     url="https://github.com/mynkit/RW_S3",
 )
