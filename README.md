@@ -1,6 +1,11 @@
 # RW_S3
 
 s3にあるexcelやcsvをpandasのデータフレームで読み書きするためのmodule
+それ以外のファイルを文字列として読み込むことも可能
+
+# version
+
+0.0.2
 
 # install
 

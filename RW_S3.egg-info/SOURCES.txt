@@ -1,0 +1,10 @@
+README.md
+setup.py
+RW_S3/__init__.py
+RW_S3/read_s3.py
+RW_S3/write_s3.py
+RW_S3.egg-info/PKG-INFO
+RW_S3.egg-info/SOURCES.txt
+RW_S3.egg-info/dependency_links.txt
+RW_S3.egg-info/requires.txt
+RW_S3.egg-info/top_level.txt
