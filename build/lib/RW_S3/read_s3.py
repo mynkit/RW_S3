@@ -23,6 +23,16 @@ class read_s3(object):
             else:
                 return {content["Key"]: content["LastModified"].strftime('%Y-%m-%d_%H:%M:%S')
                         for content in list_objects["Contents"]}
+        else:
+            return list_objects
+
+    def read_file(self, bucket, key, encoding="utf_8") -> str:
+        """
+        拡張子を問わず，テキストファイルとして読み込む
+        """
+        read_file = self.__s3.get_object(Bucket=bucket, Key=key)
+        f = read_file["Body"].read().decode(encoding)
+        return f
 
     def read_csv(self, bucket, key, encoding="utf_8", sep=',', header=0, index_col=None, usecols=None, na_values=None, nrows=None, skiprows=0):
         """
