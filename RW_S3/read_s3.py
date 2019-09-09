@@ -10,22 +10,19 @@ class read_s3(object):
         self.__s3 = session.client('s3')
         self.object_info = {}
 
-    def ls(self, bucket, key="", last_modified_time=False):
+    def ls(self, bucket, key=""):
+        return self.__get_all_keys(bucket, key)
+
+    def __get_all_keys(self, bucket: str='', prefix: str='', keys: []=[], marker: str='') -> [str]:
         """
-        bucketとkeyを指定したらその配下のオブジェクトを全てリストで返す
+        指定した prefix のすべての key の配列を返す
         """
-        list_objects = self.__s3.list_objects(
-            Bucket=bucket,
-            Prefix=key
-        )
-        if "Contents" in list_objects:
-            if last_modified_time == False:
-                return [content["Key"] for content in list_objects["Contents"]]
-            else:
-                return {content["Key"]: content["LastModified"].strftime('%Y-%m-%d_%H:%M:%S')
-                        for content in list_objects["Contents"]}
-        else:
-            return list_objects
+        response = self.__s3.list_objects(Bucket=bucket, Prefix=prefix, Marker=marker)
+        if 'Contents' in response:  # 該当する key がないと response に 'Contents' が含まれない
+            keys.extend([content['Key'] for content in response['Contents']])
+            if 'IsTruncated' in response:
+                return self.__get_all_keys(bucket=bucket, prefix=prefix, keys=keys, marker=keys[-1])
+        return keys
 
     def read_file(self, bucket, key, encoding="utf_8") -> str:
         """
@@ -44,9 +41,8 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_csv(read_file['Body'], encoding=encoding, sep=sep, header=header,
                          index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
-        object_info_dic = self.ls(
-            bucket=bucket, key=key, last_modified_time=True)
-        print("object_info: %s" % object_info_dic)
+        object_info_dic = self.ls(bucket=bucket, key=key)
+        # print("object_info: %s" % object_info_dic)
         self.object_info.update(object_info_dic)
         return df
 
@@ -59,9 +55,8 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_excel(read_file['Body'], encoding=encoding, sheet_name=sheet_name,
                            header=header, index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
-        object_info_dic = self.ls(
-            bucket=bucket, key=key, last_modified_time=True)
-        print("object_info: %s" % object_info_dic)
+        object_info_dic = self.ls(bucket=bucket, key=key)
+        # print("object_info: %s" % object_info_dic)
         self.object_info.update(object_info_dic)
         return df
 
@@ -76,8 +71,11 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_table(read_file['Body'], encoding=encoding, header=header, sep=sep,
                            index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows)
-        object_info_dic = self.ls(
-            bucket=bucket, key=key, last_modified_time=True)
-        print("object_info: %s" % object_info_dic)
+        object_info_dic = self.ls(bucket=bucket, key=key)
+        # print("object_info: %s" % object_info_dic)
         self.object_info.update(object_info_dic)
         return df
+
+if __name__ == '__main__':
+    s3 = read_s3("read_s3")
+    print(s3.ls("estiepro"))
