@@ -5,6 +5,7 @@ import boto3
 from boto3.session import Session
 from botocore.exceptions import ClientError
 
+
 class write_s3():
     def __init__(self, s3_profile='put_s3_lambda'):
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
@@ -28,7 +29,7 @@ class write_s3():
                 return False
         else:
             logging.error('Type of ' + str(type(src_data)) +
-                        ' for the argument \'src_data\' is not supported.')
+                          ' for the argument \'src_data\' is not supported.')
             return False
         try:
             self.__s3.put_object(Bucket=bucket, Key=key, Body=object_data)
@@ -50,8 +51,10 @@ class write_s3():
             * key: アップロードしたバケット内のファイルパス
         ※ 存在しないバケットにもアップロードできます
         """
-        bytes_to_write = df.to_csv(None, index=index, encoding=encoding).encode(encoding)
-        self.__s3.put_object(ACL='private', Body=bytes_to_write, Bucket=bucket, Key=key)
+        bytes_to_write = df.to_csv(
+            None, index=index, encoding=encoding).encode(encoding)
+        self.__s3.put_object(
+            ACL='private', Body=bytes_to_write, Bucket=bucket, Key=key)
 
     def to_excel(self, df: pd.DataFrame, bucket, key, index=True, encoding="utf_8"):
         """
@@ -61,5 +64,7 @@ class write_s3():
             * key: アップロードしたバケット内のファイルパス
         ※ 存在しないバケットにもアップロードできます
         """
-        bytes_to_write = df.to_excel(None, index=index, encoding=encoding).encode(encoding)
-        self.__s3.put_object(ACL='private', Body=bytes_to_write, Bucket=bucket, Key=key)
+        bytes_to_write = df.to_excel(
+            None, index=index, encoding=encoding).encode(encoding)
+        self.__s3.put_object(
+            ACL='private', Body=bytes_to_write, Bucket=bucket, Key=key)
