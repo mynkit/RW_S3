@@ -5,7 +5,7 @@ s3にあるexcelやcsvをpandasのデータフレームで読み書きするた�
 
 # version
 
-0.0.3
+0.0.4
 
 # install
 
