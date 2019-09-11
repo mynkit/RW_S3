@@ -8,7 +8,6 @@ class read_s3(object):
     def __init__(self, s3_profile):
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
-        self.object_info = {}
 
     def ls(self, bucket, key=""):
         return self.__get_all_keys(bucket, key)
@@ -41,9 +40,6 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_csv(read_file['Body'], encoding=encoding, sep=sep, header=header,
                          index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
-        object_info_dic = self.ls(bucket=bucket, key=key)
-        # print("object_info: %s" % object_info_dic)
-        self.object_info.update(object_info_dic)
         return df
 
     def read_excel(self, bucket, key, encoding="utf_8", sheet_name=0, header=0, index_col=None, usecols=None, na_values=None, nrows=None, skiprows=0):
@@ -55,9 +51,6 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_excel(read_file['Body'], encoding=encoding, sheet_name=sheet_name,
                            header=header, index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
-        object_info_dic = self.ls(bucket=bucket, key=key)
-        # print("object_info: %s" % object_info_dic)
-        self.object_info.update(object_info_dic)
         return df
 
     def read_table(self, bucket, key, encoding="utf_8", sep="\t", header=0, index_col=None, usecols=None, na_values=None, nrows=None):
@@ -71,9 +64,6 @@ class read_s3(object):
         read_file = self.__s3.get_object(Bucket=bucket, Key=key)
         df = pd.read_table(read_file['Body'], encoding=encoding, header=header, sep=sep,
                            index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows)
-        object_info_dic = self.ls(bucket=bucket, key=key)
-        # print("object_info: %s" % object_info_dic)
-        self.object_info.update(object_info_dic)
         return df
 
 if __name__ == '__main__':
