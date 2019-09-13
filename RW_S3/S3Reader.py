@@ -65,7 +65,6 @@ class S3Reader(object):
         """
         f = self.read_file(bucket, path, encoding)
         return json.loads(f)
-        
 
     def read_pickle_file(self, bucket: str, path: str):
         """pickleのファイルを読み込む
