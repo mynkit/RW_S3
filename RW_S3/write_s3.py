@@ -17,7 +17,7 @@ class write_s3():
 
     """
 
-    def __init__(self, s3_profile='put_s3_lambda'):
+    def __init__(self, s3_profile):
         warnings.warn("write_s3クラスは非推奨です(今後のupdateなし)\nS3_Writerクラスを用いてください")
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
