@@ -4,6 +4,7 @@ from boto3.session import Session
 import re
 import json
 import pickle
+import warnings
 
 
 class read_s3(object):
@@ -15,6 +16,7 @@ class read_s3(object):
     """
 
     def __init__(self, s3_profile):
+        warnings.warn("read_s3クラスは非推奨です(今後のupdateなし)\nS3_Readerクラスを用いてください")
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
