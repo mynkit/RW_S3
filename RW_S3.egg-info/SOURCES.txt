@@ -1,5 +1,7 @@
 README.md
 setup.py
+RW_S3/S3Reader.py
+RW_S3/S3Writer.py
 RW_S3/__init__.py
 RW_S3/read_s3.py
 RW_S3/write_s3.py
