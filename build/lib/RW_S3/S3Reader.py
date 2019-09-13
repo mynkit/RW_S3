@@ -4,19 +4,21 @@ from boto3.session import Session
 import re
 import json
 import pickle
-import warnings
 
 
-class read_s3(object):
+class S3Reader(object):
     """s3のファイルやpathリストを取得するクラス
 
     Args:
         s3_profile (str): s3を読み込むための権限を持ったprofile
 
+    Examples:
+        >>> s3_reader = S3Reader('hogehoge')
+        >>> print(s3_reader.ls('hoge-bucket', 'hoge/'))
+
     """
 
     def __init__(self, s3_profile):
-        warnings.warn("read_s3クラスは非推奨です(今後のupdateなし)\nS3_Readerクラスを用いてください")
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
@@ -63,7 +65,6 @@ class read_s3(object):
         """
         f = self.read_file(bucket, path, encoding)
         return json.loads(f)
-        
 
     def read_pickle_file(self, bucket: str, path: str):
         """pickleのファイルを読み込む
@@ -119,8 +120,3 @@ class read_s3(object):
         df = pd.read_table(read_file['Body'], encoding=encoding, header=header, sep=sep,
                            index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows)
         return df
-
-
-if __name__ == '__main__':
-    s3 = read_s3("read_s3")
-    print(s3.ls("estiepro"))

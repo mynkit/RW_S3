@@ -6,19 +6,21 @@ import logging
 import boto3
 from boto3.session import Session
 from botocore.exceptions import ClientError
-import warnings
 
 
-class write_s3():
+class S3Writer():
     """s3にデータをuploadするクラス
 
     Args:
         s3_profile (str): s3にputするためのprofile
 
+    Examples:
+        >>> s3_writer = S3Writer('hogehoge')
+        >>> s3_writer.to_json({"x": 1, "y": 2}, 'hoge-bucket', 'hoge/hoge.json')
+
     """
 
     def __init__(self, s3_profile):
-        warnings.warn("write_s3クラスは非推奨です(今後のupdateなし)\nS3_Writerクラスを用いてください")
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
