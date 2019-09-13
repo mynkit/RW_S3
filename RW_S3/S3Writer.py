@@ -14,6 +14,10 @@ class S3Writer():
     Args:
         s3_profile (str): s3にputするためのprofile
 
+    Examples:
+        >>> s3_writer = S3Writer('hogehoge')
+        >>> s3_writer.to_json({"x": 1, "y": 2}, 'hoge-bucket', 'hoge/hoge.json')
+
     """
 
     def __init__(self, s3_profile):

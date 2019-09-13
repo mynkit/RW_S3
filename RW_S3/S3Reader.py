@@ -12,6 +12,10 @@ class S3Reader(object):
     Args:
         s3_profile (str): s3を読み込むための権限を持ったprofile
 
+    Examples:
+        >>> s3_reader = S3Reader('hogehoge')
+        >>> print(s3_reader.ls('hoge-bucket', 'hoge/'))
+
     """
 
     def __init__(self, s3_profile):
