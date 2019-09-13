@@ -1,6 +1,6 @@
 # RW_S3
 
-s3にある読み書きするためのmodule
+s3にあるファイルを読み書きするためのmodule
 
 # version
 
