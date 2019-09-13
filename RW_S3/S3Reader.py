@@ -1,115 +1,119 @@
+import pandas as pd
+import boto3
+from boto3.session import Session
 import re
 import json
 import pickle
-import pandas as pd
-import logging
-import boto3
-from boto3.session import Session
-from botocore.exceptions import ClientError
 
 
-class S3Reader():
-    """s3にデータをuploadするクラス
+class S3Reader(object):
+    """s3のファイルやpathリストを取得するクラス
 
     Args:
-        s3_profile (str): s3にputするためのprofile
+        s3_profile (str): s3を読み込むための権限を持ったprofile
 
     """
 
-    def __init__(self, s3_profile='put_s3_lambda'):
+    def __init__(self, s3_profile):
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
-    def upload_file(self, src_data: str, bucket: str, path: str):
-        """
+    def ls(self, bucket: str, path: str = ""):
+        """bucket内のpathリストを取得
 
         Args:
-            src_data: bytes of data or string reference to file spec
-            bucket (str): bucket name
-            path (str): path name
-
-        Returns:
-            bool
-            True if src_data was added to dest_bucket/dest_object, otherwise False
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
 
         """
-        if isinstance(src_data, bytes):
-            object_data = src_data
-        elif isinstance(src_data, str):
-            try:
-                object_data = open(src_data, 'rb')
-                # possible FileNotFoundError/IOError exception
-            except Exception as e:
-                logging.error(e)
-                return False
-        else:
-            logging.error('Type of ' + str(type(src_data)) +
-                          ' for the argument \'src_data\' is not supported.')
-            return False
-        try:
-            self.__s3.put_object(Bucket=bucket, Key=path, Body=object_data)
-        except ClientError as e:
-            # AllAccessDisabled error == bucket not found
-            # NoSuchKey or InvalidRequest error == (dest bucket/obj == src bucket/obj)
-            logging.error(e)
-            return False
-        finally:
-            if isinstance(src_data, str):
-                object_data.close()
-        return True
+        return self.__get_all_keys(bucket, path)
 
-    def upload_object_by_pickle(self, obj, bucket: str, path: str):
-        """objectをpickleとしてs3に書き出す
+    def __get_all_keys(self, bucket: str = '', prefix: str = '', keys: list = [], marker: str = '') -> [str]:
+        """指定した prefix のすべての key の配列を返す
+        """
+        response = self.__s3.list_objects(
+            Bucket=bucket, Prefix=prefix, Marker=marker)
+        if 'Contents' in response:  # 該当する key がないと response に 'Contents' が含まれない
+            keys.extend([content['Key'] for content in response['Contents']])
+            if 'IsTruncated' in response:
+                return self.__get_all_keys(bucket=bucket, prefix=prefix, keys=keys, marker=keys[-1])
+        return keys
+
+    def read_file(self, bucket: str, path: str, encoding="utf_8") -> str:
+        """拡張子を問わずファイルを読み込む
 
         Args:
-            obj (any types): 
-            bucket (str): bucket name
-            path (str): path name
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
 
         """
-        self.__s3.put_object(Bucket=bucket, Key=path, Body=pickle.dumps(obj))
+        read_file = self.__s3.get_object(Bucket=bucket, Key=path)
+        f = read_file["Body"].read().decode(encoding)
+        return f
 
-    def to_json(self, dic: dict, bucket: str, path: str):
-        """dictをjsonファイルとしてs3に書き出す
+    def read_json_file(self, bucket: str, path: str, encoding="utf_8") -> dict:
+        """jsonファイルをdictとして読み込む
 
         Args:
-            dic (dict): s3に書き出したい辞書
-            bucket (str): bucket name
-            path (str): path name
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
 
         """
-        self.__s3.put_object(Bucket=bucket, Key=path, Body=json.dumps(dic))
+        f = self.read_file(bucket, path, encoding)
+        return json.loads(f)
+        
 
-    def to_csv(self, df: pd.DataFrame, bucket: str, path: str, index=True, encoding="utf_8"):
-        """ s3にデータフレームをcsvとして書き出す
+    def read_pickle_file(self, bucket: str, path: str):
+        """pickleのファイルを読み込む
 
         Args:
-            df (pd.DataFrame)
-            bucket (str): bucket name
-            path (str): path name
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
+
+        """
+        read_file = self.__s3.get_object(Bucket=bucket, Key=path)
+        f = pickle.loads(read_file['Body'].read())
+        return f
+
+    def read_csv(self, bucket: str, path: str, encoding="utf_8", sep=',', header=0, index_col=None, usecols=None, na_values=None, nrows=None, skiprows=0):
+        """csvの読み込み(pandasのread_csvとほぼ同じ)
+
+        Args:
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
+
+        """
+        read_file = self.__s3.get_object(Bucket=bucket, Key=path)
+        df = pd.read_csv(read_file['Body'], encoding=encoding, sep=sep, header=header,
+                         index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
+        return df
+
+    def read_excel(self, bucket: str, path: str, encoding="utf_8", sheet_name=0, header=0, index_col=None, usecols=None, na_values=None, nrows=None, skiprows=0):
+        """excelの読み込み(pandasのread_excelとほぼ同じ)
+
+        Args:
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
+
+        """
+        read_file = self.__s3.get_object(Bucket=bucket, Key=path)
+        df = pd.read_excel(read_file['Body'], encoding=encoding, sheet_name=sheet_name,
+                           header=header, index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows, skiprows=skiprows)
+        return df
+
+    def read_table(self, bucket: str, path: str, encoding="utf_8", sep="\t", header=0, index_col=None, usecols=None, na_values=None, nrows=None):
+        """csv, tsv, excel等の読み込み(pandasのread_tableとほぼ同じ)
+
+        Args:
+            bucket (str): バケット名
+            path (str): バケット内のオブジェクトのpath
 
         Note:
-            存在しないバケットにもアップロードできます
+            pandasではread_tableは非推奨扱いです
+            read_csv(sep='\t')を用いてください
 
         """
-        bytes_to_write = df.to_csv(
-            None, index=index, encoding=encoding).encode(encoding)
-        self.__s3.put_object(
-            ACL='private', Body=bytes_to_write, Bucket=bucket, Key=path)
-
-    def to_excel(self, df: pd.DataFrame, bucket, path, index=True, encoding="utf_8"):
-        """s3にデータフレームをexcelとして書き出す
-
-        Args:
-            df (pd.DataFrame)
-            bucket (str): bucket name
-            path (str): path name
-
-        Note:
-            存在しないバケットにもアップロードできます
-
-        """
-        bytes_to_write = df.to_excel(
-            None, index=index, encoding=encoding).encode(encoding)
-        self.__s3.put_object(
-            ACL='private', Body=bytes_to_write, Bucket=bucket, Key=path)
+        read_file = self.__s3.get_object(Bucket=bucket, Key=path)
+        df = pd.read_table(read_file['Body'], encoding=encoding, header=header, sep=sep,
+                           index_col=index_col, usecols=usecols, na_values=na_values, nrows=nrows)
+        return df
