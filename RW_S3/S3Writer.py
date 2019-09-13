@@ -16,7 +16,7 @@ class S3Writer():
 
     """
 
-    def __init__(self, s3_profile='put_s3_lambda'):
+    def __init__(self, s3_profile):
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
