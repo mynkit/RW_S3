@@ -32,11 +32,16 @@ class S3Reader(object):
         """
         return self.__get_all_keys(bucket, path)
 
-    def __get_all_keys(self, bucket: str = '', prefix: str = '', keys: list = [], marker: str = '') -> [str]:
+    def __get_all_keys(self, bucket: str = '', prefix: str = '', keys: list = None, marker: str = '') -> [str]:
         """指定した prefix のすべての key の配列を返す
         """
         response = self.__s3.list_objects(
             Bucket=bucket, Prefix=prefix, Marker=marker)
+        
+        #keyがNoneのときは初期化
+        if keys is None:
+            keys = []
+            
         if 'Contents' in response:  # 該当する key がないと response に 'Contents' が含まれない
             keys.extend([content['Key'] for content in response['Contents']])
             if 'IsTruncated' in response:
