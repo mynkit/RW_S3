@@ -4,7 +4,7 @@ s3にあるファイルを読み書きするためのmodule
 
 # version
 
-0.0.6
+0.0.7
 
 # install
 

@@ -8,14 +8,14 @@ def _requires_from_file(filename):
 
 
 setup(
-    name="RW_S3",
-    version="0.0.6",
-    python_requires=">=3.5",
+    name='RW_S3',
+    version='0.0.7',
+    python_requires='>=3.5',
     author='mynkit',
     author_email='dcm5124289@gmail.com',
     packages=[
-        "RW_S3",
+        'RW_S3',
     ],
     install_requires=_requires_from_file('requirements.txt'),
-    url="https://github.com/mynkit/RW_S3",
+    url='https://github.com/mynkit/RW_S3',
 )
