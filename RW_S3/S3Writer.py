@@ -20,7 +20,7 @@ class S3Writer():
 
     """
 
-    def __init__(self, s3_profile):
+    def __init__(self, s3_profile=None):
         session = Session(profile_name=s3_profile)  # s3にアクセスするためのプロファイルを指定
         self.__s3 = session.client('s3')
 
